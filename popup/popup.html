@@ -1,0 +1,70 @@
+<!-- popup/popup.html -->
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="popup.css">
+  <title>CPC Checker</title>
+</head>
+<body>
+  <header>
+    <h1>CPC Checker</h1>
+    <button id="close-btn">×</button>
+  </header>
+  
+  <nav>
+    <ul class="tabs">
+      <li data-tab="dashboard" class="active">Tableau de bord</li>
+      <li data-tab="config">Configuration</li>
+      <li data-tab="favorites">Favoris</li>
+      <li data-tab="search">Recherche</li>
+      <li data-tab="help">Aide</li>
+    </ul>
+  </nav>
+  
+  <main>
+    <!-- Tableau de bord -->
+    <section id="dashboard" class="tab-content active">
+      <div id="status-message"></div>
+      
+      <div id="private-messages">
+        <h2>Messages privés (<span id="private-count">0</span>)</h2>
+        <ul id="private-messages-list"></ul>
+      </div>
+      
+      <div id="discussions">
+        <h2>Discussions suivies (<span id="discussions-count">0</span>)</h2>
+        <ul id="discussions-list"></ul>
+      </div>
+      
+      <div class="actions">
+        <button id="refresh-now">Rafraîchir maintenant</button>
+        <button id="mark-read">Marquer tout comme lu</button>
+        <button id="open-forum">Ouvrir le forum</button>
+      </div>
+    </section>
+    
+    <!-- Configuration -->
+    <section id="config" class="tab-content">
+      <!-- Contenu similaire à l'image 1 -->
+    </section>
+    
+    <!-- Favoris -->
+    <section id="favorites" class="tab-content">
+      <!-- Contenu similaire à l'image 4 -->
+    </section>
+    
+    <!-- Recherche -->
+    <section id="search" class="tab-content">
+      <!-- Contenu similaire à l'image 5 -->
+    </section>
+    
+    <!-- Aide -->
+    <section id="help" class="tab-content">
+      <!-- Contenu similaire à l'image 3 -->
+    </section>
+  </main>
+  
+  <script src="popup.js"></script>
+</body>
+</html>
