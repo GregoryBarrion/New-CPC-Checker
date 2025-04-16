@@ -1,16 +1,261 @@
+<!-- popup/popup.html -->
 <!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8">
   <link rel="stylesheet" href="options.css">
-  <title>Options CPC Checker</title>
+  <title>CPC Checker</title>
 </head>
 <body>
-  <h1>Options avancées - CPC Checker</h1>
+  <header>
+    <h1>CPC Checker</h1>
+    <button id="close-btn">×</button>
+  </header>
   
-  <div class="options-container">
-    <!-- Options avancées reprenant les configurations des images montrées -->
-  </div>
+  <nav>
+    <ul class="tabs">
+      <li data-tab="dashboard" class="active">Tableau de bord</li>
+      <li data-tab="config">Configuration</li>
+      <li data-tab="favorites">Favoris</li>
+      <li data-tab="search">Recherche</li>
+      <li data-tab="help">Aide</li>
+    </ul>
+  </nav>
+  
+  <main>
+    <!-- Tableau de bord -->
+    <section id="dashboard" class="tab-content active">
+      <div id="status-message" class="status-message">Chargement des données...</div>
+      
+      <div id="private-messages" class="message-section">
+        <h2>Messages privés (<span id="private-count">0</span>)</h2>
+        <ul id="private-messages-list" class="message-list">
+          <li class="loading">Chargement...</li>
+        </ul>
+      </div>
+      
+      <div id="discussions" class="message-section">
+        <h2>Discussions suivies (<span id="discussions-count">0</span>)</h2>
+        <ul id="discussions-list" class="message-list">
+          <li class="loading">Chargement...</li>
+        </ul>
+      </div>
+      
+      <div class="actions">
+        <button id="refresh-now" class="action-button primary">Rafraîchir maintenant</button>
+        <button id="mark-read" class="action-button secondary">Marquer tout comme lu</button>
+        <button id="open-forum" class="action-button tertiary">Ouvrir le forum</button>
+      </div>
+    </section>
+    
+    <!-- Configuration -->
+    <section id="config" class="tab-content">
+      <h2>Configuration générale</h2>
+      
+      <form id="config-form">
+        <div class="option-group">
+          <label>Fonctionnement :</label>
+          <div class="radio-group">
+            <label>
+              <input type="radio" name="showAsPopup" value="yes" checked>
+              Un popup avec une version simplifiée du tableau de bord
+            </label>
+            <label>
+              <input type="radio" name="showAsPopup" value="no">
+              Un nouvel onglet avec le tableau de bord
+            </label>
+          </div>
+        </div>
+        
+        <div class="option-group">
+          <label>Rafraîchissement :</label>
+          <div class="slider-container">
+            <span>Rafraîchir toutes les :</span>
+            <input type="range" id="refresh-interval" min="1" max="60" value="5">
+            <span id="refresh-value">5 minutes</span>
+          </div>
+        </div>
+        
+        <div class="option-group">
+          <label>Accès au forum via :</label>
+          <div class="radio-group">
+            <label>
+              <input type="radio" name="httpAccess" value="http" checked>
+              http://forum.canardpc.com (défaut)
+            </label>
+            <label>
+              <input type="radio" name="httpAccess" value="https">
+              https://forum.canardpc.com (sécurisé)
+            </label>
+          </div>
+        </div>
+        
+        <div class="option-group">
+          <label>Améliorations :</label>
+          <div class="checkbox-group">
+            <label>
+              <input type="checkbox" name="hideIgnoredPosts">
+              Masquer les posts des utilisateurs ignorés
+            </label>
+          </div>
+        </div>
+        
+        <button type="submit" class="save-button">Enregistrer</button>
+      </form>
+    </section>
+    
+    <!-- Favoris -->
+    <section id="favorites" class="tab-content">
+      <h2>Gestion des favoris</h2>
+      
+      <div class="option-group">
+        <label>Utiliser les favoris :</label>
+        <div class="radio-group">
+          <label>
+            <input type="radio" name="useFavorites" value="yes" checked>
+            Oui (défaut)
+          </label>
+          <label>
+            <input type="radio" name="useFavorites" value="no">
+            Non
+          </label>
+        </div>
+      </div>
+      
+      <div class="option-group">
+        <label>Synchroniser les favoris :</label>
+        <div class="radio-group">
+          <label>
+            <input type="radio" name="syncFavorites" value="no" checked>
+            Non (défaut)
+          </label>
+          <label>
+            <input type="radio" name="syncFavorites" value="yes">
+            Oui
+          </label>
+        </div>
+      </div>
+      
+      <div class="option-group">
+        <label for="favorites-json">Sauvegarde des favoris :</label>
+        <textarea id="favorites-json" rows="6" placeholder='{"bookmarks":[], "lastUpdated":0}'></textarea>
+        <div class="button-group">
+          <button type="button" id="copy-favorites" class="secondary-button">Copier</button>
+          <button type="button" id="paste-favorites" class="secondary-button">Coller</button>
+          <button type="button" id="save-favorites" class="primary-button">Sauvegarder</button>
+        </div>
+      </div>
+    </section>
+    
+    <!-- Recherche -->
+    <section id="search" class="tab-content">
+      <h2>Recherche sur le forum</h2>
+      
+      <div class="search-container">
+        <form id="forum-search-form">
+          <div class="search-input-wrapper">
+            <input type="text" id="search-query" class="search-input" placeholder="Rechercher sur le forum...">
+            <button type="submit" class="search-button">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+            </button>
+          </div>
+          
+          <div class="search-options">
+            <div class="search-scope">
+              <label>
+                <input type="checkbox" id="search-titles-only" checked>
+                Titres uniquement
+              </label>
+            </div>
+            
+            <div class="search-engine-selection">
+              <span class="search-engine-option active" data-engine="duckduckgo">DuckDuckGo</span>
+              <span class="search-engine-option" data-engine="qwant">Qwant</span>
+              <span class="search-engine-option" data-engine="google">Google</span>
+            </div>
+          </div>
+        </form>
+      </div>
+      
+      <div class="option-group">
+        <label>Moteur de recherche par défaut :</label>
+        <div class="radio-group">
+          <label>
+            <input type="radio" name="searchEngine" value="duckduckgo" checked>
+            DuckDuckGo
+          </label>
+          <label>
+            <input type="radio" name="searchEngine" value="qwant">
+            Qwant
+          </label>
+          <label>
+            <input type="radio" name="searchEngine" value="google">
+            Google
+          </label>
+        </div>
+        
+        <button id="save-search-options" class="save-button">Enregistrer</button>
+      </div>
+    </section>
+    
+    <!-- Aide -->
+    <section id="help" class="tab-content">
+      <h2>Légende des icônes</h2>
+      
+      <div class="legend-item">
+        <div class="icon-wrapper">
+          <div class="status-icon status-disconnected"></div>
+        </div>
+        <div class="legend-description">
+          Vous n'êtes pas enregistré sur le forum / ou erreur de connexion.
+        </div>
+      </div>
+      
+      <div class="legend-item">
+        <div class="icon-wrapper">
+          <div class="status-icon status-connected"></div>
+        </div>
+        <div class="legend-description">
+          Vous êtes enregistré sur le forum mais il n'y a pas de nouveau message dans les discussions suivies ni de nouveau messages privé.
+        </div>
+      </div>
+      
+      <div class="legend-item">
+        <div class="icon-wrapper">
+          <div class="status-icon status-new-messages"></div>
+        </div>
+        <div class="legend-description">
+          Vous avez des nouveaux messages dans les discussions suivies.
+        </div>
+      </div>
+      
+      <div class="legend-item">
+        <div class="icon-wrapper">
+          <span class="badge">2</span>
+        </div>
+        <div class="legend-description">
+          Indique le nombre de nouveau message privé.
+        </div>
+      </div>
+      
+      <div class="legend-item">
+        <div class="icon-wrapper">
+          <span class="badge discussion-badge">2</span>
+        </div>
+        <div class="legend-description">
+          Indique le nombre de nouveau message dans les discussions suivies.
+        </div>
+      </div>
+      
+      <h2>À propos</h2>
+      <p class="about-text">CPC Checker v1.0.0</p>
+      <p class="about-text">Inspiré par l'extension originale de Coxis.</p>
+      <p class="about-text">Pour signaler un bug ou suggérer une amélioration, rendez-vous sur le <a href="http://forum.canardpc.com/threads/71879-CPC-Checker-v2" target="_blank">forum CanardPC</a>.</p>
+    </section>
+  </main>
   
   <script src="options.js"></script>
 </body>

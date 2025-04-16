@@ -1,0 +1,338 @@
+/* options.css */
+:root {
+    --color-primary: #4285f4;
+    --color-primary-dark: #3367d6;
+    --color-secondary: #f1f1f1;
+    --color-text: #333;
+    --color-text-light: #757575;
+    --color-border: #ddd;
+    --color-error: #d32f2f;
+    --color-success: #388e3c;
+    --border-radius: 4px;
+    --spacing-unit: 8px;
+  }
+  
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+  
+  body {
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--color-text);
+    background-color: #f5f5f5;
+    padding: 20px;
+  }
+  
+  .container {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+  
+  header {
+    margin-bottom: 20px;
+  }
+  
+  h1 {
+    font-size: 24px;
+    font-weight: normal;
+    color: var(--color-primary);
+  }
+  
+  h2 {
+    font-size: 18px;
+    margin-bottom: 15px;
+    color: var(--color-text);
+    border-bottom: 1px solid var(--color-border);
+    padding-bottom: 5px;
+  }
+  
+  .card {
+    background-color: white;
+    border-radius: var(--border-radius);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+  
+  .option-group {
+    margin-bottom: 20px;
+  }
+  
+  .option-group:last-child {
+    margin-bottom: 0;
+  }
+  
+  label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+  }
+  
+  .radio-group,
+  .checkbox-group {
+    margin-left: 16px;
+  }
+  
+  .radio-group label,
+  .checkbox-group label {
+    font-weight: normal;
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  
+  input[type="radio"],
+  input[type="checkbox"] {
+    margin-right: 8px;
+  }
+  
+  .slider-container {
+    display: flex;
+    align-items: center;
+  }
+  
+  input[type="range"] {
+    flex: 1;
+    margin-right: 10px;
+  }
+  
+  #interval-value {
+    min-width: 80px;
+  }
+  
+  textarea {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius);
+    font-family: monospace;
+    font-size: 13px;
+    resize: vertical;
+  }
+  
+  .button-group {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+  }
+  
+  button {
+    padding: 8px 16px;
+    background-color: var(--color-primary);
+    color: white;
+    border: none;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  
+  button:hover {
+    background-color: var(--color-primary-dark);
+  }
+  
+  .info-text {
+    color: var(--color-text-light);
+  }
+  
+  .notification {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    padding: 10px 15px;
+    border-radius: var(--border-radius);
+    background-color: var(--color-success);
+    color: white;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    opacity: 0;
+    transform: translateY(20px);
+    animation: notification 3s forwards;
+  }
+  
+  @keyframes notification {
+    0% { opacity: 0; transform: translateY(20px); }
+    10% { opacity: 1; transform: translateY(0); }
+    90% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-20px); }
+  }
+  
+  /* Dark mode */
+  @media (prefers-color-scheme: dark) {
+    body[data-theme="system"],
+    body[data-theme="dark"] {
+      --color-primary: #8ab4f8;
+      --color-primary-dark: #669df6;
+      --color-secondary: #292929;
+      --color-text: #e0e0e0;
+      --color-text-light: #b0b0b0;
+      --color-border: #444;
+      
+      background-color: #202124;
+    }
+    
+    body[data-theme="system"] .card,
+    body[data-theme="dark"] .card {
+      background-color: #292929;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    }
+    
+    body[data-theme="system"] textarea,
+    body[data-theme="dark"] textarea {
+      background-color: #333;
+      color: var(--color-text);
+      border-color: #444;
+    }
+  }
+
+  /* popup/popup.css - Ajouts pour l'état de connexion */
+.status-message {
+  margin-bottom: 15px;
+  padding: 10px;
+  border-radius: 4px;
+  background-color: #f5f5f5;
+  font-size: 13px;
+}
+
+.status-message.error {
+  background-color: #ffebee;
+  color: #c62828;
+  border-left: 3px solid #c62828;
+}
+
+.status-message a {
+  color: #1976d2;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.status-message a:hover {
+  text-decoration: underline;
+}
+
+.message-section {
+  margin-bottom: 20px;
+}
+
+.message-section h2 {
+  font-size: 14px;
+  margin-bottom: 8px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.message-list {
+  max-height: 200px;
+  overflow-y: auto;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.message-list li {
+  padding: 8px 5px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.message-list li.loading {
+  color: #888;
+  font-style: italic;
+}
+
+.message-list li.empty {
+  color: #888;
+  font-style: italic;
+  text-align: center;
+  padding: 15px 5px;
+}
+
+.message-list li.new a {
+  font-weight: bold;
+  color: #c00;
+}
+
+.message-list a {
+  text-decoration: none;
+  color: #333;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.message-info {
+  font-size: 11px;
+  color: #666;
+  margin-left: 5px;
+}
+
+.badge {
+  display: inline-block;
+  min-width: 18px;
+  height: 18px;
+  line-height: 18px;
+  padding: 0 5px;
+  font-size: 11px;
+  font-weight: 700;
+  color: white;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: middle;
+  background-color: #e53935;
+  border-radius: 10px;
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.action-button {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.action-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.action-button.primary {
+  background-color: #1976d2;
+  color: white;
+}
+
+.action-button.primary:hover:not(:disabled) {
+  background-color: #1565c0;
+}
+
+.action-button.secondary {
+  background-color: #f5f5f5;
+  color: #333;
+  border: 1px solid #ddd;
+}
+
+.action-button.secondary:hover:not(:disabled) {
+  background-color: #e5e5e5;
+}
+
+.action-button.tertiary {
+  background-color: transparent;
+  color: #1976d2;
+  text-decoration: underline;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.action-button.tertiary:hover:not(:disabled) {
+  color: #1565c0;
+}

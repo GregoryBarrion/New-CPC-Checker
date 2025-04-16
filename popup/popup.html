@@ -32,9 +32,18 @@
         <ul id="private-messages-list"></ul>
       </div>
       
-      <div id="discussions">
-        <h2>Discussions suivies (<span id="discussions-count">0</span>)</h2>
-        <ul id="discussions-list"></ul>
+      <div id="discussions" class="message-section">
+        <h2>
+          Discussions non lues
+          <span class="count-badge" id="discussions-count">0</span>
+        </h2>
+        <ul id="discussions-list" class="message-list">
+          <li class="loading">Chargement...</li>
+        </ul>
+        <div class="section-actions">
+          <a href="#" id="view-all-subscriptions" class="action-link">Voir tous mes abonnements</a>
+          <a href="#" id="view-unread-subscriptions" class="action-link">Voir mes abonnements non lus</a>        
+        </div>
       </div>
       
       <div class="actions">
@@ -46,7 +55,58 @@
     
     <!-- Configuration -->
     <section id="config" class="tab-content">
-      <!-- Contenu similaire à l'image 1 -->
+      <h2>Configuration générale</h2>
+      
+      <form id="config-form">
+        <div class="option-group">
+          <label>Fonctionnement :</label>
+          <div class="radio-group">
+            <label>
+              <input type="radio" name="showAsPopup" value="yes" checked>
+              Un popup avec une version simplifiée du tableau de bord
+            </label>
+            <label>
+              <input type="radio" name="showAsTab" value="no">
+              Un nouvel onglet avec le tableau de bord
+            </label>
+          </div>
+        </div>
+        
+        <div class="option-group">
+          <label>Rafraîchissement :</label>
+          <div class="slider-container">
+            <span>Rafraîchir toutes les :</span>
+            <input type="range" id="refresh-interval" min="1" max="60" value="5">
+            <span id="refresh-value">5 minutes</span>
+          </div>
+        </div>
+        
+        <div class="option-group">
+          <label>Accès au forum via :</label>
+          <div class="radio-group">
+            <label>
+              <input type="radio" name="httpAccess" value="false">
+              http://forum.canardpc.com
+            </label>
+            <label>
+              <input type="radio" name="httpAccess" value="true">
+              https://forum.canardpc.com (défaut)
+            </label>
+          </div>
+        </div>
+        
+        <div class="option-group">
+          <label>Améliorations :</label>
+          <div class="checkbox-group">
+            <label>
+              <input type="checkbox" name="hideIgnoredPosts">
+              Masquer les posts des utilisateurs ignorés
+            </label>
+          </div>
+        </div>
+        
+        <button type="submit" class="save-button">Enregistrer</button>
+      </form>
     </section>
     
     <!-- Favoris -->
@@ -56,7 +116,34 @@
     
     <!-- Recherche -->
     <section id="search" class="tab-content">
-      <!-- Contenu similaire à l'image 5 -->
+        <div class="search-container">
+      <form id="forum-search-form">
+        <div class="search-input-wrapper">
+          <input type="text" id="search-query" class="search-input" placeholder="Rechercher sur le forum...">
+          <button type="submit" class="search-button">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+          </button>
+        </div>
+        
+        <div class="search-options">
+          <div class="search-scope">
+            <label>
+              <input type="checkbox" id="search-titles-only" checked>
+              Titres uniquement
+            </label>
+          </div>
+          
+          <div class="search-engine-selection">
+            <span class="search-engine-option" data-engine="duckduckgo">DuckDuckGo</span>
+            <span class="search-engine-option" data-engine="qwant">Qwant</span>
+            <span class="search-engine-option" data-engine="google">Google</span>
+          </div>
+        </div>
+      </form>
+    </div>
     </section>
     
     <!-- Aide -->
