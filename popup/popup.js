@@ -48,12 +48,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   let privateMessages = [];
   let discussions = [];
   
-  if (data.rawHtml && data.isLoggedIn) {
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(data.rawHtml, 'text/html');
-    
-    // Extraction des messages privés
-    privateMessages = extractPrivateMessages(doc);
+  if (data.messagesHtml && data.isLoggedIn !== false) {
+    privateMessages = extractPrivateMessages(data.messagesHtml);
   }
   
   // Extraire les discussions non lues de la page de recherche
@@ -64,43 +60,32 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Affichage des messages privés (code existant)...
   
   // Affichage des discussions suivies
-  const discussionsList = document.getElementById('discussions-list');
-  const discussionsCount = document.getElementById('discussions-count');
+  const privateMessagesList = document.getElementById('private-messages-list');
+  const privateCount = document.getElementById('private-count');
   
-  if (discussions && discussions.length > 0) {
-    discussionsCount.textContent = discussions.length;
-    discussionsList.innerHTML = '';
+  if (privateMessages && privateMessages.length > 0) {
+    privateCount.textContent = privateMessages.length;
+    privateMessagesList.innerHTML = '';
     
-    discussions.forEach(discussion => {
+    privateMessages.forEach(message => {
       const li = document.createElement('li');
       li.className = 'new';
-      
-      // Créer le contenu HTML avec plus d'informations
       li.innerHTML = `
-        <div class="discussion-item">
-          ${discussion.prefix ? `<span class="discussion-prefix">${discussion.prefix}</span>` : ''}
-          <a href="${discussion.firstUnreadUrl || discussion.url}" class="discussion-title" target="_blank">
-            ${discussion.title}
+        <div class="message-item">
+          <a href="${message.url}" target="_blank" class="message-title">
+            ${message.title}
           </a>
-          <div class="discussion-meta">
-            ${discussion.forum ? `<span class="discussion-forum">${discussion.forum}</span>` : ''}
-            ${discussion.postsCount ? `<span class="discussion-count">${discussion.postsCount}</span>` : ''}
-          </div>
-          <div class="discussion-last-post">
-            <span class="discussion-last-post-info">
-              ${discussion.lastPostAuthor ? `par ${discussion.lastPostAuthor}` : ''}
-              ${discussion.lastPostDate ? `- ${discussion.lastPostDate}` : ''}
-            </span>
-            ${discussion.lastPostUrl ? `<a href="${discussion.lastPostUrl}" class="go-to-last" target="_blank" title="Aller au dernier message">»</a>` : ''}
+          <div class="message-info">
+            <span class="message-sender">De: ${message.sender}</span>
+            ${message.date ? `<span class="message-date">${message.date}</span>` : ''}
           </div>
         </div>
       `;
-      
-      discussionsList.appendChild(li);
+      privateMessagesList.appendChild(li);
     });
   } else {
-    discussionsCount.textContent = '0';
-    discussionsList.innerHTML = '<li class="empty">Aucune discussion non lue</li>';
+    privateCount.textContent = '0';
+    privateMessagesList.innerHTML = '<li class="empty">Aucun nouveau message privé</li>';
   }
 
     // Ensuite afficher celles sans nouveaux messages (limité à 10)
@@ -190,6 +175,16 @@ document.addEventListener('DOMContentLoaded', async () => {
       url: `${baseUrl}/search?searchJSON=%7B%22view%22%3A%22topic%22%2C%22sort%22%3A%7B%22lastcontent%22%3A%22desc%22%7D%2C%22exclude_type%22%3A%5B%22vBForum_PrivateMessage%22%5D%2C%22my_following%22%3A%221%22%7D` 
     });
   });
+
+  const privateMessagesSection = document.getElementById('private-messages');
+  if (!privateMessagesSection.querySelector('.section-actions')) {
+    const actionsDiv = document.createElement('div');
+    actionsDiv.className = 'section-actions';
+    actionsDiv.innerHTML = `
+      <a href="${baseUrl}/messagecenter/index" target="_blank" class="action-link">Voir tous les messages</a>
+    `;
+    privateMessagesSection.appendChild(actionsDiv);
+  }
   
   // Initialisation des autres onglets
   initConfigTab(config);
@@ -874,3 +869,45 @@ function initSearchTab(config) {
       url: `${baseUrl}/search?searchJSON=%7B%22view%22%3A%22topic%22%2C%22unread_only%22%3A1%2C%22sort%22%3A%7B%22lastcontent%22%3A%22desc%22%7D%2C%22exclude_type%22%3A%5B%22vBForum_PrivateMessage%22%5D%2C%22my_following%22%3A%221%22%7D` 
     });
   });
+
+  function extractPrivateMessages(html) {
+    const messages = [];
+    
+    // Créer un parser DOM pour analyser le HTML
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+    
+    // Récupérer tous les messages de la liste
+    const messageRows = doc.querySelectorAll('.message-row, .message-item, tr.unread');
+    
+    messageRows.forEach(row => {
+      // Vérifier si le message est non lu
+      const isUnread = row.classList.contains('unread') || 
+                        row.querySelector('.unread-indicator, .unread-badge, .icon-unread');
+      
+      if (isUnread) {
+        // Extraire les données du message
+        const titleElement = row.querySelector('.message-title, .message-subject, td.title a');
+        const senderElement = row.querySelector('.message-sender, .sender, .username');
+        const dateElement = row.querySelector('.message-date, .date, .lastpost');
+        const linkElement = row.querySelector('a[href*="messagecenter"]');
+        
+        if (titleElement && linkElement) {
+          const title = titleElement.textContent.trim();
+          const sender = senderElement ? senderElement.textContent.trim() : 'Inconnu';
+          const date = dateElement ? dateElement.textContent.trim() : '';
+          const url = linkElement.href;
+          
+          messages.push({
+            title: title,
+            sender: sender,
+            date: date,
+            url: url,
+            isUnread: true
+          });
+        }
+      }
+    });
+    
+    return messages;
+  }

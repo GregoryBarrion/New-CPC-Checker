@@ -62,37 +62,33 @@ async function checkForNewMessages() {
   
   try {
     // 1. Vérifier d'abord la connexion via usercp.php (pour les messages privés)
-    console.log(`Requête vers ${baseUrl}/usercp.php`);
-    const response = await fetch(`${baseUrl}/usercp.php`, {
+    console.log(`Requête vers ${baseUrl}/settings/profile`);
+    const response = await fetch(`${baseUrl}/settings/profile`, {
       credentials: 'include',
       cache: 'no-store'
     });
-    
-    if (!response.ok) {
-      throw new Error(`Erreur HTTP: ${response.status}`);
-    }
-    
-    // Vérifier si l'utilisateur est connecté (redirection vers login.php)
+
     const finalUrl = response.url;
     console.log(`URL finale: ${finalUrl}`);
+
+    const html = await response.text();
     
-    if (finalUrl.includes('login.php')) {
-      console.log('Utilisateur non connecté');
-      updateBadge('?', '#888888');
-      updateIcon('disconnected');
-      
-      await chrome.storage.local.set({
-        isLoggedIn: false,
-        lastCheck: new Date().toISOString(),
-        error: 'Non connecté au forum'
-      });
-      
+    // Méthodes multiples pour détecter la déconnexion
+    const isLoggedOut = 
+      html.includes('logged-out') || 
+      html.includes('Impossible d\'accéder aux options du profil en tant qu\'invité') ||
+      html.includes('data-username=\'Invité\'') ||
+      html.includes('data-userid=\'0\'') ||
+      !html.includes('auth/logout');
+    
+    if (isLoggedOut) {
+      console.log('Utilisateur non connecté - Plusieurs indicateurs trouvés');
+      handleDisconnectedState('Non connecté - Veuillez vous connecter au forum');
       return { success: false, error: 'Non connecté' };
     }
     
     // L'utilisateur est connecté, récupérer le HTML de la page pour les messages privés
     console.log('Utilisateur connecté, récupération du HTML');
-    const html = await response.text();
     
     // 2. Récupérer les abonnements non lus via l'URL de recherche spécifique
     console.log('Récupération des abonnements non lus');
@@ -108,6 +104,8 @@ async function checkForNewMessages() {
     }
     
     const searchHtml = await searchResponse.text();
+
+    const messagesResult = await fetchPrivateMessages();
     
     // 3. Stocker les deux pages HTML pour traitement dans le popup
     await chrome.storage.local.set({
@@ -117,20 +115,36 @@ async function checkForNewMessages() {
       lastCheck: new Date().toISOString(),
       error: null
     });
+
     
     // Traitement rapide pour le badge et les notifications
     // Messages privés (recherche basique)
     const privateMessagesMatch = html.match(/Vous avez (\d+) nouveau/i) || html.match(/(\d+) message.+priv/i);
-    const privateMessagesCount = privateMessagesMatch ? privateMessagesMatch[1] : "0";
     
     // Discussions non lues (compter à partir des résultats de recherche)
     // Pour vBulletin 6.1.1, on compte les éléments topic-item unread
     const newDiscussionsCount = (searchHtml.match(/class=\"topic-item.*unread/g) || []).length;
     
+    let privateMessagesCount = 0;
+    
+    // Récupérer les données de messages existantes pour la comparaison
+    const { messagesHtml } = await chrome.storage.local.get('messagesHtml');
+    
+    if (messagesHtml) {
+      // Rechercher le compteur de messages non lus
+      const unreadMatch = messagesHtml.match(/(\d+)\s*message.*non lu/i);
+      if (unreadMatch) {
+        privateMessagesCount = parseInt(unreadMatch[1], 10);
+      } else {
+        // Méthode alternative : compter les lignes de messages avec la classe "unread"
+        privateMessagesCount = (messagesHtml.match(/class="message-row.*unread/g) || []).length;
+      }
+    }
+    
     console.log(`Messages privés: ${privateMessagesCount}, Discussions non lues: ${newDiscussionsCount}`);
     
     // Nombre total de nouveaux éléments
-    const totalNew = parseInt(privateMessagesCount) + parseInt(newDiscussionsCount);
+    const totalNew = privateMessagesCount + newDiscussionsCount;
     
     // Mise à jour du badge et de l'icône
     if (totalNew > 0) {
@@ -139,12 +153,12 @@ async function checkForNewMessages() {
       updateIcon('new-messages');
       
       // Notifications
-      if (config.notifyPrivate && parseInt(privateMessagesCount) > 0) {
-        showNotification('privateMessages', { count: parseInt(privateMessagesCount) });
+      if (config.notifyPrivate && privateMessagesCount > 0) {
+        showNotification('privateMessages', { count: privateMessagesCount });
       }
       
-      if (config.notifyDiscussions && parseInt(newDiscussionsCount) > 0) {
-        showNotification('newDiscussions', { count: parseInt(newDiscussionsCount) });
+      if (config.notifyDiscussions && newDiscussionsCount > 0) {
+        showNotification('newDiscussions', { count: newDiscussionsCount });
       }
     } else {
       console.log('Aucun nouvel élément');
@@ -156,15 +170,7 @@ async function checkForNewMessages() {
     
   } catch (error) {
     console.error('Erreur lors de la vérification des messages:', error);
-    updateBadge('!', '#FF0000');
-    updateIcon('disconnected');
-    
-    await chrome.storage.local.set({
-      isLoggedIn: false,
-      error: `Erreur: ${error.message}`,
-      lastCheck: new Date().toISOString()
-    });
-    
+    handleDisconnectedState(`Erreur: ${error.message}`);
     return { success: false, error: error.message };
   }
 }
@@ -191,13 +197,26 @@ function updateIcon(state) {
 
 // Affichage des notifications
 function showNotification(type, data) {
+  const { config } = chrome.storage.sync.get('config') || { config: { } };
+  
   if (type === 'privateMessages' && data.count > 0) {
     chrome.notifications.create('cpc_private_messages', {
       type: 'basic',
       iconUrl: 'icons/new-messages128.png',
       title: 'Nouveaux messages privés',
       message: `Vous avez ${data.count} nouveau(x) message(s) privé(s)`,
-      priority: 2
+      priority: 2,
+      buttons: [
+        { title: 'Voir les messages' }
+      ]
+    });
+    
+    // Ajouter un gestionnaire de clic sur la notification
+    chrome.notifications.onButtonClicked.addListener((notificationId, buttonIndex) => {
+      if (notificationId === 'cpc_private_messages' && buttonIndex === 0) {
+        const baseUrl = config.useHttps ? 'https://forum.canardpc.com' : 'http://forum.canardpc.com';
+        chrome.tabs.create({ url: `${baseUrl}/messagecenter/index` });
+      }
     });
   }
   
@@ -207,10 +226,35 @@ function showNotification(type, data) {
       iconUrl: 'icons/new-thread128.png',
       title: 'Discussions suivies',
       message: `Vous avez ${data.count} discussion(s) avec de nouveaux messages`,
-      priority: 2
+      priority: 2,
+      buttons: [
+        { title: 'Voir les discussions' }
+      ]
+    });
+    
+    // Ajouter un gestionnaire de clic sur la notification
+    chrome.notifications.onButtonClicked.addListener((notificationId, buttonIndex) => {
+      if (notificationId === 'cpc_new_discussions' && buttonIndex === 0) {
+        const baseUrl = config.useHttps ? 'https://forum.canardpc.com' : 'http://forum.canardpc.com';
+        chrome.tabs.create({ 
+          url: `${baseUrl}/search?searchJSON=%7B%22view%22%3A%22topic%22%2C%22unread_only%22%3A1%2C%22sort%22%3A%7B%22lastcontent%22%3A%22desc%22%7D%2C%22exclude_type%22%3A%5B%22vBForum_PrivateMessage%22%5D%2C%22my_following%22%3A%221%22%7D` 
+        });
+      }
     });
   }
 }
+
+chrome.notifications.onClicked.addListener((notificationId) => {
+  const { config } = chrome.storage.sync.get('config') || { config: { } };
+  const baseUrl = config.useHttps ? 'https://forum.canardpc.com' : 'http://forum.canardpc.com';
+  
+  if (notificationId === 'cpc_private_messages') {
+    chrome.tabs.create({ url: `${baseUrl}/messagecenter/index` });
+  } else if (notificationId === 'cpc_new_discussions') {
+    chrome.tabs.create({ 
+      url: `${baseUrl}/search?searchJSON=%7B%22view%22%3A%22topic%22%2C%22unread_only%22%3A1%2C%22sort%22%3A%7B%22lastcontent%22%3A%22desc%22%7D%2C%22exclude_type%22%3A%5B%22vBForum_PrivateMessage%22%5D%2C%22my_following%22%3A%221%22%7D` 
+    });
+  }
 
 // Action pour marquer tout comme lu
 // Mise à jour de la fonction markAllAsRead dans background.js
@@ -220,10 +264,9 @@ async function markAllAsRead() {
   const baseUrl = config.useHttps ? 'https://forum.canardpc.com' : 'http://forum.canardpc.com';
   
   try {
-    // Dans vBulletin 6.1.1, utiliser l'URL 'markread'
+    // 1. Marquer toutes les discussions comme lues
     const markReadUrl = `${baseUrl}/markread`;
     
-    // Requête pour marquer tout comme lu
     await fetch(markReadUrl, {
       method: 'POST',
       credentials: 'include',
@@ -233,11 +276,23 @@ async function markAllAsRead() {
       body: 'do=markread&securitytoken=guest'
     });
     
-    // Marquer également les abonnements
+    // 2. Marquer également les abonnements
     const subsUrl = `${baseUrl}/subscription.php?do=markread&markreadhash=all`;
     await fetch(subsUrl, {
       method: 'GET',
       credentials: 'include'
+    });
+    
+    // 3. Marquer les messages privés comme lus (nouveau)
+    // Cette URL peut varier, vérifiez si elle est correcte pour votre forum
+    const messagesUrl = `${baseUrl}/messagecenter/markunread`;
+    await fetch(messagesUrl, {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: 'action=markread&securitytoken=guest'
     });
     
     // Mettre à jour l'interface
@@ -246,10 +301,15 @@ async function markAllAsRead() {
     
     // Effacer les données pour forcer une nouvelle vérification
     await chrome.storage.local.set({
-      rawHtml: null,
       searchHtml: null,
+      messagesHtml: null,
       lastCheck: new Date().toISOString()
     });
+    
+    // Vérifier à nouveau après un court délai
+    setTimeout(() => {
+      checkForNewMessages();
+    }, 1000);
     
     return { success: true };
   } catch (error) {
@@ -299,5 +359,64 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       chrome.tabs.create({ url: message.url });
       sendResponse({ success: true });
       return false;
+
+    case 'checkLoginStatus':
+      checkLoginStatus().then(isLoggedIn => {
+        sendResponse({ isLoggedIn: isLoggedIn });
+      });
+      return true;
   }
 });
+
+function handleDisconnectedState(errorMessage) {
+  console.log('Gestion de l\'état déconnecté:', errorMessage);
+  updateBadge('?', '#888888');
+  updateIcon('disconnected');
+  
+  chrome.storage.local.set({
+    isLoggedIn: false,
+    rawHtml: null,
+    searchHtml: null,
+    lastCheck: new Date().toISOString(),
+    error: errorMessage
+  });
+}
+
+async function fetchPrivateMessages() {
+  console.log('Récupération des messages privés...');
+  const { config } = await chrome.storage.sync.get('config');
+  const baseUrl = config.useHttps ? 'https://forum.canardpc.com' : 'http://forum.canardpc.com';
+  
+  try {
+    // Requête vers le centre de messages
+    const response = await fetch(`${baseUrl}/messagecenter/index`, {
+      credentials: 'include',
+      cache: 'no-store'
+    });
+    
+    if (!response.ok) {
+      console.log('Erreur lors de la récupération des messages privés:', response.status);
+      return { success: false, error: `Erreur HTTP: ${response.status}` };
+    }
+    
+    // Vérifier si l'utilisateur est redirigé (déconnecté)
+    if (response.url.includes('login.php')) {
+      console.log('Utilisateur non connecté lors de la récupération des messages privés');
+      return { success: false, error: 'Non connecté' };
+    }
+    
+    // Récupérer le HTML
+    const html = await response.text();
+    
+    // Stocker le HTML brut pour traitement dans le popup
+    await chrome.storage.local.set({
+      messagesHtml: html,
+      lastMessageCheck: new Date().toISOString()
+    });
+    
+    return { success: true };
+  } catch (error) {
+    console.error('Erreur lors de la récupération des messages privés:', error);
+    return { success: false, error: error.message };
+  }
+}

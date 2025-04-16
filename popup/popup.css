@@ -580,3 +580,189 @@
     color: #8ab4f8;
   }
 }
+
+/* Styles améliorés pour les messages d'erreur et les boutons */
+.error-box, .warning-box {
+  display: flex;
+  padding: 12px;
+  border-radius: 6px;
+  margin-bottom: 15px;
+  align-items: flex-start;
+}
+
+.error-box {
+  background-color: rgba(220, 53, 69, 0.1);
+  border-left: 4px solid #dc3545;
+}
+
+.warning-box {
+  background-color: rgba(255, 193, 7, 0.1);
+  border-left: 4px solid #ffc107;
+}
+
+.error-icon, .warning-icon {
+  font-size: 20px;
+  margin-right: 12px;
+  margin-top: 2px;
+}
+
+.error-content, .warning-content {
+  flex: 1;
+}
+
+.login-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+.login-link {
+  display: inline-block;
+  padding: 6px 12px;
+  background-color: #007bff;
+  color: white !important;
+  text-decoration: none;
+  border-radius: 4px;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.login-link:hover {
+  background-color: #0069d9;
+}
+
+.check-button {
+  padding: 6px 12px;
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.check-button:hover {
+  background-color: #5a6268;
+}
+
+.check-button:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+/* Mode sombre */
+@media (prefers-color-scheme: dark) {
+  body.theme-dark .error-box,
+  body.theme-system .error-box {
+    background-color: rgba(220, 53, 69, 0.15);
+  }
+  
+  body.theme-dark .warning-box,
+  body.theme-system .warning-box {
+    background-color: rgba(255, 193, 7, 0.15);
+  }
+  
+  body.theme-dark .login-link,
+  body.theme-system .login-link {
+    background-color: #0d6efd;
+  }
+  
+  body.theme-dark .login-link:hover,
+  body.theme-system .login-link:hover {
+    background-color: #0b5ed7;
+  }
+  
+  body.theme-dark .check-button,
+  body.theme-system .check-button {
+    background-color: #5c636a;
+  }
+  
+  body.theme-dark .check-button:hover,
+  body.theme-system .check-button:hover {
+    background-color: #4d555d;
+  }
+}
+
+/* Ajoutez ces styles à popup.css */
+.message-item {
+  padding: 8px 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.message-title {
+  font-weight: bold;
+  color: #333;
+  text-decoration: none;
+  display: block;
+  margin-bottom: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.message-info {
+  display: flex;
+  font-size: 11px;
+  color: #666;
+  margin-top: 3px;
+  justify-content: space-between;
+}
+
+.message-sender {
+  font-style: italic;
+}
+
+.message-date {
+  color: #888;
+}
+
+/* Pour le mode sombre */
+@media (prefers-color-scheme: dark) {
+  body.theme-dark .message-title,
+  body.theme-system .message-title {
+    color: #e0e0e0;
+  }
+  
+  body.theme-dark .message-info,
+  body.theme-system .message-info {
+    color: #aaa;
+  }
+  
+  body.theme-dark .message-date,
+  body.theme-system .message-date {
+    color: #999;
+  }
+}
+
+/* Styles pour les actions des sections */
+.section-actions {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid #eee;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.action-link {
+  font-size: 12px;
+  color: #1976d2;
+  text-decoration: none;
+}
+
+.action-link:hover {
+  text-decoration: underline;
+}
+
+@media (prefers-color-scheme: dark) {
+  body.theme-dark .section-actions,
+  body.theme-system .section-actions {
+    border-top-color: #444;
+  }
+  
+  body.theme-dark .action-link,
+  body.theme-system .action-link {
+    color: #8ab4f8;
+  }
+}

@@ -27,9 +27,12 @@
     <section id="dashboard" class="tab-content active">
       <div id="status-message"></div>
       
-      <div id="private-messages">
+      <div id="private-messages" class="message-section">
         <h2>Messages privés (<span id="private-count">0</span>)</h2>
-        <ul id="private-messages-list"></ul>
+        <ul id="private-messages-list" class="message-list">
+          <li class="loading">Chargement...</li>
+        </ul>
+        <!-- La section-actions sera ajoutée dynamiquement -->
       </div>
       
       <div id="discussions" class="message-section">
@@ -41,8 +44,7 @@
           <li class="loading">Chargement...</li>
         </ul>
         <div class="section-actions">
-          <a href="#" id="view-all-subscriptions" class="action-link">Voir tous mes abonnements</a>
-          <a href="#" id="view-unread-subscriptions" class="action-link">Voir mes abonnements non lus</a>        
+          <a href="#" id="view-all-discussions" class="link-action">Voir toutes les discussions suivies</a>
         </div>
       </div>
       
